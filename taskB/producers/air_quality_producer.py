@@ -26,14 +26,19 @@ print("Starting Air Quality Producer with Error Injection... (Press Ctrl+C to st
 
 while True:
     aqi = random.randint(20, 400)
+    # Simulate occasional sensor timeout
 
-    # Simulate 10% out-of-range AQI values for DLQ testing
-    if random.random() < 0.10:
+    if random.random() < 0.03:
+        logging.warning("Simulated air quality sensor timeout. Retrying after short delay.")
+        time.sleep(2)
+
+    # Simulate 5% out-of-range AQI values for DLQ testing
+    if random.random() < 0.05:
         aqi = random.choice([-10, 999])
         logging.warning("Out-of-range AQI generated for DLQ testing.")
 
-    # Simulate 10% null AQI values for DLQ testing
-    if random.random() < 0.10:
+    # Simulate 5% null AQI values for DLQ testing
+    if random.random() < 0.05:
         aqi = None
         logging.warning("Null AQI generated and handled gracefully.")
 
