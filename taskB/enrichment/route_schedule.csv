@@ -1,0 +1,11 @@
+route_id,route_name,terminal,scheduled_arrival
+
+R10,Airport Express,Airport,08:45
+
+R11,Tech Park Shuttle,Tech Park,09:00
+
+R12,City Center Loop,City Center,09:15
+
+R13,Ring Road Service,Ring Road,09:30
+
+R14,Metro Connector,Metro Station,09:45
