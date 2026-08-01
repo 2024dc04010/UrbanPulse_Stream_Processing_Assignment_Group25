@@ -11,3 +11,5 @@ kafka_2.13-3.9.1.tgz
 # Python cache
 __pycache__/
 *.pyc
+kafka-data/
+*.log
