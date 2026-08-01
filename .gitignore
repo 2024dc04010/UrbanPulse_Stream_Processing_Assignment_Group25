@@ -1,15 +1,24 @@
-# Kafka binaries
+# Kafka binaries and runtime data
 kafka_2.13-3.9.1/
 kafka_2.13-3.9.1.tgz
+kafka-data/
 
-# Logs
-*.log
-
-# Nano backup files
-*.save
-
-# Python cache
+# Python generated files
 __pycache__/
 *.pyc
-kafka-data/
+
+# Logs and temporary files
 *.log
+*.save
+*.tmp
+
+# Archives
+*.tar.gz
+*.zip
+
+# OS/editor files
+.DS_Store
+
+# Java build files
+
+*.class
