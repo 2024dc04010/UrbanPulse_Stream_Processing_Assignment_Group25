@@ -442,14 +442,6 @@ taskB/
 
 ---
 
-# Prototype Scope Note
-
-The production architecture targets a 3-broker Kafka deployment with replication and fault tolerance.
-
-Due to the available Rocky Linux VM resource constraints, the prototype implementation was executed using a single Kafka broker with replication factor 1 while maintaining the intended partition strategy, retention policies, topic design, priority-consumer architecture, DLQ pattern, and Kafka Streams enrichment workflow.
-
----
-
 # Status
 
 ## Completed
