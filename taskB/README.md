@@ -418,7 +418,6 @@ taskB/
 │   ├── dlq_processor.py
 │   └── dlq_report.py
 │
-├── evidence/
 │
 ├── kafka/
 │   ├── create_topics.sh
