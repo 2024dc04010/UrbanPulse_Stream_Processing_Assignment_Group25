@@ -192,65 +192,43 @@ run_bg "standard_priority_consumer" python3 "$TASKB/consumers/standard_priority_
 run_bg "dlq_processor"              python3 "$TASKB/dlq/dlq_processor.py"
 
 # =============================================================================
-# PHASE 6 — Docker: Flink + Spark
+# PHASE 6 — Install Python dependencies and Flink JAR
 # =============================================================================
-log "PHASE 6 — Starting Flink + Spark via Docker Compose..."
+log "PHASE 6 — Preparing Flink and Spark native execution..."
 
-cd "$TASKC"
-docker compose up -d --build
-ok "Docker services started."
+log "Installing PyFlink and PySpark (may take a minute)..."
+pip3 install --quiet apache-flink==1.18.1 pyspark==3.5.0
+ok "Python streaming libraries installed."
 
-log "Waiting for Flink JobManager (http://localhost:8081)..."
-for i in $(seq 1 60); do
-    if curl -sf http://localhost:8081/overview > /dev/null 2>&1; then
-        ok "Flink JobManager is ready."
-        break
-    fi
-    sleep 3
-    printf "."
-done
-echo ""
+FLINK_JAR="flink-sql-connector-kafka-3.0.2-1.18.jar"
+if [[ ! -f "$TASKC/flink/$FLINK_JAR" ]]; then
+    log "Downloading Flink Kafka connector..."
+    curl -sSLo "$TASKC/flink/$FLINK_JAR" "https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-connector-kafka/3.0.2-1.18/$FLINK_JAR"
+    ok "Downloaded $FLINK_JAR."
+fi
+
+export KAFKA_BOOTSTRAP="$KAFKA_BOOTSTRAP"
 
 # =============================================================================
 # PHASE 7 — Submit Flink Jobs
 # =============================================================================
-log "PHASE 7 — Submitting Flink incident detection jobs..."
+log "PHASE 7 — Submitting Flink incident detection jobs (Native)..."
 
-FLINK_JM="urbanpulse-flink-jobmanager"
-
-submit_flink() {
-    local name="$1" script="$2"
-    docker exec -d "$FLINK_JM" \
-        flink run -py "/opt/flink/jobs/$(basename "$script")"
-    ok "Flink: $name"
-    sleep 2
-}
-
-submit_flink "AQI Emergency Detector"    "$TASKC/flink/aqi_emergency_detector.py"
-submit_flink "Traffic Gridlock Detector" "$TASKC/flink/gridlock_detector.py"
-submit_flink "Bus Bunching Detector"     "$TASKC/flink/bunching_detector.py"
+# Note: Flink mini-cluster starts automatically when executed via python3
+run_bg "flink_aqi_detector"       python3 "$TASKC/flink/aqi_emergency_detector.py"
+run_bg "flink_gridlock_detector"  python3 "$TASKC/flink/gridlock_detector.py"
+run_bg "flink_bunching_detector"  python3 "$TASKC/flink/bunching_detector.py"
 
 # =============================================================================
 # PHASE 8 — Submit Spark Jobs
 # =============================================================================
-log "PHASE 8 — Submitting Spark analytics jobs..."
+log "PHASE 8 — Submitting Spark analytics jobs (Native)..."
 
-SPARK_CTR="urbanpulse-spark"
-KAFKA_PKG="org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0"
+export PYSPARK_PYTHON=python3
+export PYSPARK_DRIVER_PYTHON=python3
 
-submit_spark() {
-    local name="$1" script="$2"
-    docker exec -d "$SPARK_CTR" spark-submit \
-        --master "local[2]" \
-        --packages "$KAFKA_PKG" \
-        --conf "spark.driver.memory=1g" \
-        "/opt/spark/jobs/$(basename "$script")"
-    ok "Spark: $name"
-    sleep 3
-}
-
-submit_spark "Ward Energy Streaming"  "$TASKC/spark/ward_energy_streaming.py"
-submit_spark "Health Advisories SQL"  "$TASKC/spark/health_advisories.py"
+run_bg "spark_ward_energy"    python3 "$TASKC/spark/ward_energy_streaming.py"
+run_bg "spark_health_advisory" python3 "$TASKC/spark/health_advisories.py"
 
 # =============================================================================
 # Summary
@@ -259,8 +237,8 @@ echo ""
 echo -e "${BOLD}╔══════════════════════════════════════════════════════════════╗${RESET}"
 echo -e "${BOLD}║   UrbanPulse — All Systems Running ✔                         ║${RESET}"
 echo -e "${BOLD}╠══════════════════════════════════════════════════════════════╣${RESET}"
-echo -e "${BOLD}║   Flink UI      http://$(hostname -I | awk '{print $1}'):8081              ║${RESET}"
-echo -e "${BOLD}║   Spark UI      http://$(hostname -I | awk '{print $1}'):8080              ║${RESET}"
+echo -e "${BOLD}║   Execution Mode: Native (No Docker)                          ║${RESET}"
+echo -e "${BOLD}║   Kafka UI: none (running natively in background)             ║${RESET}"
 echo -e "${BOLD}╠══════════════════════════════════════════════════════════════╣${RESET}"
 echo -e "${BOLD}║   Logs          ./all/logs/                                   ║${RESET}"
 echo -e "${BOLD}║   PIDs          ./all/pids.txt                                ║${RESET}"

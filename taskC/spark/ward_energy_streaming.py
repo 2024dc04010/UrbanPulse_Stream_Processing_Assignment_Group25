@@ -38,6 +38,7 @@ Smart Meter event schema (from taskC/smart_meter_producer.py):
 """
 
 import logging
+import os
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import (
     col, from_json, to_json, struct, sum as _sum,
@@ -53,7 +54,7 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger("WardEnergyStreaming")
 
 # ── Configuration ────────────────────────────────────────────────────────────
-KAFKA_BOOTSTRAP     = "host.docker.internal:9092"
+KAFKA_BOOTSTRAP     = os.environ.get("KAFKA_BOOTSTRAP", "localhost:9092")
 SOURCE_TOPIC        = "urbanpulse.smart_meters"
 SINK_KAFKA_TOPIC    = "urbanpulse.ward_energy_summary"
 SINK_PARQUET_PATH   = "/output/ward_energy"
@@ -79,6 +80,7 @@ spark = (
     .appName("UrbanPulse — Ward Energy Streaming")
     .config("spark.sql.shuffle.partitions", "3")
     .config("spark.sql.streaming.forceDeleteTempCheckpointLocation", "true")
+    .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0")
     .getOrCreate()
 )
 spark.sparkContext.setLogLevel("WARN")

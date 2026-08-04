@@ -26,6 +26,7 @@ Run inside Spark container:
 """
 
 import logging
+import os
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import (
     col, from_json, to_json, struct,
@@ -42,10 +43,10 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger("HealthAdvisories")
 
 # ── Configuration ────────────────────────────────────────────────────────────
-KAFKA_BOOTSTRAP      = "host.docker.internal:9092"
+KAFKA_BOOTSTRAP      = os.environ.get("KAFKA_BOOTSTRAP", "localhost:9092")
 SOURCE_TOPIC         = "urbanpulse.air_quality"
 SINK_TOPIC           = "urbanpulse.health_advisories"
-ZONE_PROFILE_PATH    = "/opt/spark/data/zone_profile.csv"
+ZONE_PROFILE_PATH    = "taskC/data/zone_profile.csv"
 WINDOW_DURATION      = "10 minutes"    # rolling window width
 SLIDE_DURATION       = "1 minute"      # slide interval (produces rolling effect)
 WATERMARK_DELAY      = "10 minutes"    # tolerate up to 10 min late events
@@ -78,6 +79,7 @@ spark = (
     SparkSession.builder
     .appName("UrbanPulse — AQI Health Advisories")
     .config("spark.sql.shuffle.partitions", "3")
+    .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0")
     .getOrCreate()
 )
 spark.sparkContext.setLogLevel("WARN")

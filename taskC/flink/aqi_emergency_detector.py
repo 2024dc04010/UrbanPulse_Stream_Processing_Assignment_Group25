@@ -21,6 +21,7 @@ Run inside Flink container:
 import json
 import logging
 import math
+import os
 from datetime import datetime, timezone
 
 from pyflink.common import WatermarkStrategy, Duration, Types
@@ -41,7 +42,7 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger("AQIEmergencyDetector")
 
 # ── Configuration ────────────────────────────────────────────────────────────
-KAFKA_BOOTSTRAP = "host.docker.internal:9092"
+KAFKA_BOOTSTRAP = os.environ.get("KAFKA_BOOTSTRAP", "localhost:9092")
 SOURCE_TOPIC    = "urbanpulse.air_quality"
 OUTPUT_TOPIC    = "urbanpulse.incidents"
 AQI_THRESHOLD   = 300          # Hazardous threshold
@@ -127,6 +128,11 @@ class AQIEmergencyDetector(KeyedProcessFunction):
 def main():
     env = StreamExecutionEnvironment.get_execution_environment()
     env.set_parallelism(1)
+
+    # Automatically load the Kafka connector JAR if running natively
+    jar_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'flink-sql-connector-kafka-3.0.2-1.18.jar'))
+    if os.path.exists(jar_path):
+        env.add_jars(f"file://{jar_path}")
 
     # ── Watermark strategy: event-time with 10s out-of-order tolerance ────
     watermark_strategy = (

@@ -30,10 +30,6 @@ else
     echo "  No PID file found — nothing tracked to stop."
 fi
 
-# Stop Docker services (Flink + Spark)
-log "Stopping Docker services (Flink + Spark)..."
-cd "$TASKC" && docker compose down && ok "Docker services stopped."
-
 # Stop Kafka (optional — comment out if you want Kafka to keep running)
 log "Stopping Kafka broker and ZooKeeper..."
 "$KAFKA_DIR/bin/kafka-server-stop.sh"  2>/dev/null || true
