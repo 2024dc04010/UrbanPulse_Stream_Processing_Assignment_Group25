@@ -1,0 +1,3 @@
+# Task C Python dependencies
+# For local scripts (producers, topic creation helpers)
+kafka-python==3.0.9
