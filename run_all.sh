@@ -33,9 +33,8 @@
 #
 # Prerequisites:
 #   • Docker running
-#   • Kafka broker accessible at localhost:9092
-#     (start it however Task B expects — e.g. kafka-server-start.sh or Docker)
 #   • pip install kafka-python==3.0.9
+#   • Kafka binaries at ./kafka_2.13-3.9.1/  (auto-started if not already up)
 #
 # Usage:
 #   cd UrbanPulse_Stream_Processing_Assignment_Group25/
@@ -48,6 +47,7 @@
 set -e
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 LOG_DIR="$ROOT_DIR/all/logs"
+KAFKA_DIR="$ROOT_DIR/kafka_2.13-3.9.1"
 mkdir -p "$LOG_DIR"
 
 TASKB="$ROOT_DIR/taskB"
@@ -78,13 +78,51 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 # =============================================================================
-# PHASE 1 — Docker Services (Flink + Spark)
+# PHASE 0 — Kafka (auto-start if not already running)
 # =============================================================================
 echo ""
 echo -e "${BOLD}╔══════════════════════════════════════════════════════════╗${RESET}"
 echo -e "${BOLD}║  UrbanPulse — Full Pipeline Startup                       ║${RESET}"
 echo -e "${BOLD}╚══════════════════════════════════════════════════════════╝${RESET}"
 echo ""
+log "PHASE 0 — Checking Kafka..."
+
+if bash -c "echo > /dev/tcp/localhost/9092" 2>/dev/null; then
+    warn "Kafka already running at localhost:9092 — skipping start."
+else
+    if [[ ! -d "$KAFKA_DIR" ]]; then
+        err "Kafka not running and binaries not found at $KAFKA_DIR"
+        err "Start Kafka manually first, then re-run this script."
+        exit 1
+    fi
+    log "Starting ZooKeeper..."
+    nohup "$KAFKA_DIR/bin/zookeeper-server-start.sh" \
+        "$KAFKA_DIR/config/zookeeper.properties" \
+        >> "$LOG_DIR/zookeeper.log" 2>&1 &
+    PIDS+=($!)
+    sleep 5
+
+    log "Starting Kafka broker..."
+    nohup "$KAFKA_DIR/bin/kafka-server-start.sh" \
+        "$KAFKA_DIR/config/server.properties" \
+        >> "$LOG_DIR/kafka_broker.log" 2>&1 &
+    PIDS+=($!)
+
+    log "Waiting for Kafka to be ready..."
+    for i in $(seq 1 30); do
+        if bash -c "echo > /dev/tcp/localhost/9092" 2>/dev/null; then
+            ok "Kafka is ready."
+            break
+        fi
+        sleep 2
+        echo -n "."
+    done
+    echo ""
+fi
+
+# =============================================================================
+# PHASE 1 — Docker Services (Flink + Spark)
+# =============================================================================
 log "PHASE 1 — Starting Docker services (Flink + Spark)..."
 
 cd "$TASKC"
@@ -149,8 +187,10 @@ ok "All Kafka topics are ready."
 log "PHASE 3 — Starting all Kafka producers..."
 
 start_bg() {
-    local name="$1" cmd="$2" logfile="$3"
-    $cmd >> "$logfile" 2>&1 &
+    local name="$1" logfile="$3"
+    # Use eval so a command string like "python3 /path/file.py" is correctly
+    # split into binary + argument, and nohup keeps it alive on Linux servers
+    eval "nohup $2 >> \"$logfile\" 2>&1 &"
     local pid=$!
     PIDS+=($pid)
     ok "$name started (PID: $pid | log: $(basename "$logfile"))"
