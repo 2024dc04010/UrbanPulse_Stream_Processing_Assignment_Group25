@@ -49,7 +49,7 @@ SINK_TOPIC           = "urbanpulse.health_advisories"
 ZONE_PROFILE_PATH    = "taskC/data/zone_profile.csv"
 WINDOW_DURATION      = "1 minute"    # rolling window width
 SLIDE_DURATION       = "1 minute"      # slide interval (produces rolling effect)
-WATERMARK_DELAY      = "10 minutes"    # tolerate up to 10 min late events
+WATERMARK_DELAY      = "1 minute"     # tolerate up to 10 min late events
 AQI_ALERT_THRESHOLD  = 150             # Unhealthy threshold (US EPA standard)
 CHECKPOINT_PATH      = "/tmp/spark-checkpoints/health_advisories"
 
@@ -122,7 +122,7 @@ parsed_df = (
     .filter(col("zone").isNotNull())
     .filter(col("aqi").isNotNull())
     .filter((col("aqi") >= 0) & (col("aqi") <= 500))   # valid AQI range
-    .withColumn("event_time", to_timestamp(col("timestamp"), "yyyy-MM-dd'T'HH:mm:ss'Z'"))
+    .withColumn("event_time", col("timestamp").cast("timestamp"))
     .filter(col("event_time").isNotNull())
 )
 

@@ -34,6 +34,21 @@ PID_FILE="$ROOT_DIR/all/pids.txt"
 KAFKA_DIR="$ROOT_DIR/kafka_2.13-3.9.1"
 KAFKA_BOOTSTRAP="localhost:9092"
 
+# ── Ensure Java is on PATH (needed for macOS where Homebrew Java isn't in default PATH) ──
+if [[ -d "/opt/homebrew/opt/openjdk@17/bin" ]]; then
+    export PATH="/opt/homebrew/opt/openjdk@17/bin:$PATH"
+elif [[ -d "/usr/local/opt/openjdk@17/bin" ]]; then
+    export PATH="/usr/local/opt/openjdk@17/bin:$PATH"
+fi
+
+# ── Create local bin/ to PATH so PyFlink can find 'python' (macOS/Linux compat) ──
+mkdir -p "$ROOT_DIR/bin"
+if [ ! -f "$ROOT_DIR/bin/python" ]; then
+    printf '#!/bin/bash\nexec python3 "$@"\n' > "$ROOT_DIR/bin/python"
+    chmod +x "$ROOT_DIR/bin/python"
+fi
+export PATH="$ROOT_DIR/bin:$PATH"
+
 mkdir -p "$LOG_DIR"
 > "$PID_FILE"   # reset PID file on each run
 
