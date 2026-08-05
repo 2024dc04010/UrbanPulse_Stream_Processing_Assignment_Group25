@@ -58,8 +58,8 @@ KAFKA_BOOTSTRAP     = os.environ.get("KAFKA_BOOTSTRAP", "localhost:9092")
 SOURCE_TOPIC        = "urbanpulse.smart_meters"
 SINK_KAFKA_TOPIC    = "urbanpulse.ward_energy_summary"
 SINK_PARQUET_PATH   = "taskC/output/ward_energy"
-WINDOW_DURATION     = "1 minute"
-WATERMARK_DELAY     = "1 minute"    # handle late-arriving smart meter events
+WINDOW_DURATION     = "15 minutes"
+WATERMARK_DELAY     = "45 minutes"    # handle late-arriving smart meter events
 
 KAFKA_CHECKPOINT    = "/tmp/spark-checkpoints/ward_energy_kafka"
 PARQUET_CHECKPOINT  = "/tmp/spark-checkpoints/ward_energy_parquet"
