@@ -32,6 +32,7 @@ from pyflink.datastream.connectors.kafka import (
     KafkaSink,
     KafkaRecordSerializationSchema,
     KafkaOffsetsInitializer,
+    KafkaOffsetResetStrategy,
 )
 from pyflink.common.serialization import SimpleStringSchema
 from pyflink.datastream.functions import KeyedProcessFunction, RuntimeContext
