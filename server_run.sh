@@ -209,6 +209,9 @@ fi
 
 export KAFKA_BOOTSTRAP="$KAFKA_BOOTSTRAP"
 
+# Tell PyFlink to use python3 (required on macOS which has no 'python' symlink)
+export PYFLINK_PYTHON="$(which python3)"
+
 # =============================================================================
 # PHASE 7 — Submit Flink Jobs
 # =============================================================================
