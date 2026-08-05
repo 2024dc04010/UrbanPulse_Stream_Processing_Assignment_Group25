@@ -40,3 +40,5 @@ taskC/logs/
 # ── Spark / Flink checkpoints ─────────────────────────────────────────────────
 /tmp/spark-checkpoints/
 /tmp/flink-checkpoints/
+all/
+bin/
