@@ -231,7 +231,7 @@ def main():
         .set_bootstrap_servers(KAFKA_BOOTSTRAP)
         .set_topics(SOURCE_TOPIC)
         .set_group_id("flink-bunching-group")
-        .set_starting_offsets(KafkaOffsetsInitializer.latest())
+        .set_starting_offsets(KafkaOffsetsInitializer.committed_offsets(KafkaOffsetResetStrategy.LATEST))
         .set_value_only_deserializer(SimpleStringSchema())
         .build()
     )
