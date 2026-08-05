@@ -57,7 +57,7 @@ logger = logging.getLogger("WardEnergyStreaming")
 KAFKA_BOOTSTRAP     = os.environ.get("KAFKA_BOOTSTRAP", "localhost:9092")
 SOURCE_TOPIC        = "urbanpulse.smart_meters"
 SINK_KAFKA_TOPIC    = "urbanpulse.ward_energy_summary"
-SINK_PARQUET_PATH   = "/output/ward_energy"
+SINK_PARQUET_PATH   = "taskC/output/ward_energy"
 WINDOW_DURATION     = "1 minute"
 WATERMARK_DELAY     = "1 minute"    # handle late-arriving smart meter events
 
