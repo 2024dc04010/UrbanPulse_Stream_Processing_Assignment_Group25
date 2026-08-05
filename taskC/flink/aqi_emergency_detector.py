@@ -31,7 +31,7 @@ from pyflink.datastream.connectors.kafka import (
     KafkaSource,
     KafkaSink,
     KafkaRecordSerializationSchema,
-    KafkaOffsetResetStrategy,
+    KafkaOffsetsInitializer,
 )
 from pyflink.common.serialization import SimpleStringSchema
 from pyflink.datastream.functions import KeyedProcessFunction, RuntimeContext
@@ -147,7 +147,7 @@ def main():
         .set_bootstrap_servers(KAFKA_BOOTSTRAP)
         .set_topics(SOURCE_TOPIC)
         .set_group_id("flink-aqi-emergency-group")
-        .set_starting_offsets(KafkaOffsetResetStrategy.LATEST)
+        .set_starting_offsets(KafkaOffsetsInitializer.latest())
         .set_value_only_deserializer(SimpleStringSchema())
         .build()
     )
